@@ -1,6 +1,12 @@
 # Ansible
 Vamos imaginar que temos 1 servidor para realizar a configuração dele, não teriamos problemas em configurar ele e deixar tudo funcionando perfeitamente. Mas e se tivessemos com 3 ? Um pouco mais trabalhoso, mesmo assim não teriamos problemas e se tivessemos 100 ou 1000 ? Usando o **Ansible** conseguiriamos realizar a mesma configuração em todos os servidores e se tivermos algum erro conseguiriamos ter um feedback de erro.
 
+## Documentação oficial
+Nada melhor que a documentação oficial para tirar duvidas e novidades de novas versões.
+```sh
+https://docs.ansible.com/
+```
+
 ## Mas afinal o que é **Ansible**?  
 O Ansible é um sistema de automação de configurações feito em Python, que nos ajuda e nos permite escrever descrever procedimentos em arquivos no formato **YAML** que são reproduzidos usando SSH em maquinas remotas. Dessa forma só precisamos ter acesso ao SSH do servidor que queremos instalar e assim realizar os comandos de forma remota.
 
@@ -11,7 +17,7 @@ Existem outras ferramentas nessa categoria ...
 - Puppet
 
 ## Instalação
-Vamos instalar o **Ansible** em nossa maquina local, ele não necessita de nenhum client/agent/biblioteca que deva ser instalado na maquina virtual. O **Ansible** é feito em python e funciona em diversas plataformas.
+Vamos instalar o **Ansible** em nossa maquina local, ele não necessita de nenhum client/agent/biblioteca que deva ser instalado na maquina remota. O **Ansible** é feito em python e funciona em diversas plataformas.
 
 ### Como se comunica ?
 O Ansible se comunica com as maquinas virtuais ou fisicas usando conexão SSH.
@@ -58,9 +64,8 @@ Quais hosts esse comando vai ser executado ?
 - Qual usuario vai ser usado?
 
 Nesse exemplo vamos realizar dois passos e são eles
-- atualizar pacotes
-- instalar nginx
-
+- Atualizar pacotes
+- Instalar nginx
 
 Vamos salvar esse arquivo com o nome **webserver.yml**.
 ```sh
@@ -106,6 +111,8 @@ ansible-playbook -i hosts_file webserver.yml
 ```
 > O comando **ansible-playbook -i hosts_file** é usado para que possamos passar um determinado grupo de hosts.
 
+> E **hosts_file** é o nosso arquivo contendo os grupos de hosts.
+
 ### Entendendo melhor hosts
 O nosso playbook só vai ser aplicado nas maquinas que tenham os IPS:
 - 10.0.0.1
@@ -129,8 +136,59 @@ ssh usuario@maquina
 Alem disso devemos configurar para que não seja necessario o uso de senha no **sudo**.
 
 ### Retirando acesso via senha por SSH
+Na Distribuição Debian e seus derivados podemos alterar o arquivo de configuração do nosso servidor e assim retirar o login por senha.
+```sh
+sudo nano /etc/ssh/sshd_config
+```
+
+Vamos procurar por **PasswordAuthentication yes**, pode estar comentado, vamos descomentar e mudar seu valor para **no**.
+
+Segue o exemplo
+```sh
+PasswordAuthentication no
+```
+> Dessa forma não vamos mais nos autenticar com o uso de senha.
 
 ### Criando e adicionando chave publica
+Vamos na nossa maquina host criar uma chave publica, vamos usar
+```sh
+ssh-keygen
+```
+> Por padrão ele cria o arquivo **id_rsa**.
+
+Podemos apertar enter para deixar o nome padrão **id_rsa**, ou então dar um nome para essa chave.
+
+Vamos até o diretorio do **.ssh**, se estiver usando o Debian ou algum derivado vai ser parecido com esse caminho.
+```sh
+/home/greenmind/.ssh
+```
+> **greenmind** é meu nome de usuario, caso o seu seja **carlos** seria algo como **/home/carlos/.ssh**.
+
+Nossa chave publica vai ter o final **.pub**. Veja o exemplo da minha chave:
+```sh
+cat key_teste.pub
+```
+
+O resultado vai ser algo parecido com o resultado abaixo:
+```sh
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7h89rHd96PC/9M3qG59HoncTGopoB3qpUXWxltp1lcE54iCKAVZfx7C4eEJO/dFDWRiNm5XyMyCuOsYmEelnXLopSFSFTT$%Y#W@423546ygdwdw3ef44444TqWGKBocsmX8IQTdHuWcYOREaxTs9+WPdvPdc5uYqQ5ggVo7rP6K1VeJm/KbnCOhp7un/VWrKLYDXaRupaodaIKpFJnrA/4/DeS5fumI1lva/87HTLN greenmind@abase
+```
+
+Agora vamos até a maquina que queremos acessar, ir até o diretorio do SSH, procurar pelo arquivo **authorized_keys**, caso não tenha vamos criar.
+```sh
+sudo nano /home/greenmind/.ssh/authorized_keys
+```
+> **greenmind** é meu nome de usuario, caso o seu seja **carlos** seria algo como **/home/carlos/.ssh**.
+
+Vamos adicionar a chave publica criada anteriormente nesse arquivo **authorized_keys** e dessa forma não precisamos mais de senha para logar no servidor.
+
+### Testando acesso
+Agora só realizar um login ao nosso servidor, se der tudo certo ele não vai pedir a senha, apenas para aceitar o uso da chave.
+> Não se esqueça de testar a conexão antes, pois pode ter problemas ao executar e excutar a chave.
+
+```sh
+ssh user@meuservidor
+```
 
 ### Conhecendo melhor os atributos
 Vamos entender o
@@ -195,3 +253,10 @@ localhost                  : ok=2    changed=1    unreachable=0    failed=0    s
 
 **PLAY RECAP** é o resumo da aplicação do playbook.
 Podemos ver que teve 2 ok.
+
+## Conclusão
+Vimos que com o uso do Ansible podemos aumentar a nossa produtividade, a mesma configuração realizada em um servidor vai ser feita em grupo especifico ou até todos os servidores que estejam no arquivos hosts. Com o uso de **infraestrutura como codigo** conseguimos escrever tudo o que nossa infraestrutura precisa e assim tendo a certeza que vai funcionar em todos os servidores. Desde pequenos processos de atualização, instalação de um simples pacote e até a instalação completa de uma infraestrutura de produção.
+
+Qualquer coisa fico a disposição para ajudar, tirar duvidas e no que eu puder ajudar.
+
+Obrigado e até a proxima.
